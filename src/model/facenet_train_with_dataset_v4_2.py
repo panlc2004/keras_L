@@ -21,23 +21,20 @@ def similarity(x):
     return x
 
 
-def build_model(input_img_size, embedding_size):
-    inputs = Input((2, input_img_size[0], input_img_size[1], 3), name='group_input')
-    inputs_reshape = Lambda(lambda x: tf.reshape(x, [batch_size * 2, input_img_size[0], input_img_size[1], 3]),
-                            name='group_input_reshape')(inputs)
-    base_module = InceptionResNetV2(weights=None, input_tensor=inputs_reshape, classes=embedding_size)
-    custom_input = base_module.output
-    # 图片总数量 = batch_size * 2
-    x = Lambda(lambda x: tf.reshape(x, [batch_size, 2, embedding_size]), name='prediction_reshape')(custom_input)
-    # 矩阵相似计算：x^2相似
-    x = Lambda(similarity, input_shape=[2, embedding_size], name='similarity')(x)
-    # # 线性回归
-    x = Dense(1, activation='sigmoid', name='final_predict')(x)
-    model = Model(base_module.input, x)
-    return model
+embedding_size = 128
 
+# inputs = tf.placeholder(tf.float32, [None, 96, 96, 3], name='input')
+inputs = Input((img_size[0], img_size[1], 3), name='group_input')
 
-model = build_model(img_size, 128)
+base_module = InceptionResNetV2(weights=None, input_tensor=inputs, classes=embedding_size)
+custom_input = base_module.output
+# 图片总数量 = batch_size * 2
+x = Lambda(lambda x: tf.reshape(x, [batch_size, 2, embedding_size]), name='prediction_reshape')(custom_input)
+# 矩阵相似计算：x^2相似
+x = Lambda(similarity, input_shape=[2, embedding_size], name='similarity')(x)
+# # 线性回归
+x = Dense(1, activation='sigmoid', name='final_predict')(x)
+model = Model(base_module.input, x)
 
 model.load_weights('face_model_epoch_19.h5')
 
@@ -51,7 +48,7 @@ def get_img_data(img_path):
 img1 = get_img_data('F:/facenet_train_data/train/person0/person0_0.png')
 img2 = get_img_data('F:/facenet_train_data/train/person0/person0_1.png')
 img = [img1, img2]
-img = [img]
+# img = [img]
 img = np.asarray(img)
 print(img.shape)
 predict = model.predict(img)
