@@ -9,6 +9,7 @@ from keras.layers import Conv2D, PReLU, Lambda
 from keras.layers import Input, Dense, Flatten
 from keras.models import Model
 from keras.optimizers import SGD
+from keras.constraints import unit_norm
 
 from src.am_softmax.am_softmax_activation import AmSoftmax
 
@@ -62,7 +63,8 @@ x = Flatten()(x)
 x = Dense(2)(x)
 x = PReLU()(x)
 ip1 = Lambda(lambda x: K.l2_normalize(x), name='ip1')(x)
-ip2 = AmSoftmax(num_classes, use_bias=False)(ip1)
+# ip2 = AmSoftmax(num_classes, use_bias=False, kernel_constraint=unit_norm())(ip1)
+ip2 = Dense(num_classes, use_bias=False, kernel_constraint=unit_norm())(ip1)
 
 
 def am_softmax_loss(y_true, y_pred):
@@ -76,7 +78,7 @@ def am_softmax_loss(y_true, y_pred):
 
 model = Model(inputs=inputs, outputs=[ip2])
 model.compile(loss=am_softmax_loss,
-              optimizer=SGD(lr=0.01),
+              optimizer='adam',
               metrics=['accuracy'])
 
 # prepare callback
