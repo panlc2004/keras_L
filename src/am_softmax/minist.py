@@ -5,7 +5,7 @@ import src.am_softmax.callbacks as AM_callbacks
 from keras import backend as K
 from keras.callbacks import *
 from keras.datasets import mnist
-from keras.layers import Conv2D, PReLU
+from keras.layers import Conv2D, PReLU, Lambda
 from keras.layers import Input, Dense, Flatten
 from keras.models import Model
 from keras.optimizers import SGD
@@ -66,14 +66,14 @@ x = Conv2D(128, (5, 5))(x)
 x = PReLU()(x)
 x = Flatten()(x)
 x = Dense(2)(x)
-ip1 = PReLU(name='ip1')(x)
-# ip2 = Dense(num_classes, activation='softmax')(ip1)
+x = PReLU()(x)
+ip1 = Lambda(lambda x: K.l2_normalize(x), name='ip1')(x)
 ip2 = AmSoftmax(num_classes, use_bias=False)(ip1)
 
 
 def am_softmax_loss(y_true, y_pred):
     m = 0.35
-    s = 30
+    s = 3
     y_pred = y_true * (y_pred - m) + (1 - y_true) * y_pred
     y_pred *= s
     loss = K.categorical_crossentropy(y_true, y_pred, from_logits=True)
