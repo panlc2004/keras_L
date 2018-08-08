@@ -8,7 +8,7 @@ from keras.datasets import mnist
 from keras.layers import Conv2D, PReLU, Lambda
 from keras.layers import Input, Dense, Flatten
 from keras.models import Model
-from keras.optimizers import SGD
+from keras.optimizers import SGD, Adam
 
 from src.am_softmax.am_softmax_activation import AmSoftmax
 
@@ -52,11 +52,17 @@ y_train = keras.utils.to_categorical(y_train, num_classes)
 y_test = keras.utils.to_categorical(y_test, num_classes)
 
 inputs = Input(shape=(28, 28, 1))
-x = Conv2D(16, (3, 3))(inputs)
+x = Conv2D(32, (3, 3))(inputs)
 x = PReLU()(x)
 x = Conv2D(32, (3, 3))(x)
 x = PReLU()(x)
+x = Conv2D(64, (3, 3))(x)
+x = PReLU()(x)
 x = Conv2D(64, (5, 5))(x)
+x = PReLU()(x)
+x = Conv2D(128, (5, 5))(x)
+x = PReLU()(x)
+x = Conv2D(128, (5, 5))(x)
 x = PReLU()(x)
 x = Flatten()(x)
 x = Dense(2)(x)
@@ -67,7 +73,7 @@ ip2 = AmSoftmax(num_classes, use_bias=False)(ip1)
 
 def am_softmax_loss(y_true, y_pred):
     m = 0.35
-    s = 3
+    s = 10
     y_pred = y_true * (y_pred - m) + (1 - y_true) * y_pred
     y_pred *= s
     loss = K.categorical_crossentropy(y_true, y_pred, from_logits=True)
@@ -76,7 +82,7 @@ def am_softmax_loss(y_true, y_pred):
 
 model = Model(inputs=inputs, outputs=[ip2])
 model.compile(loss=am_softmax_loss,
-              optimizer=SGD(lr=0.01),
+              optimizer=Adam(),
               metrics=['accuracy'])
 
 # prepare callback
