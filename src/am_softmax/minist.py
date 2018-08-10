@@ -68,7 +68,7 @@ x = PReLU()(x)
 x = Flatten()(x)
 x = Dense(2)(x)
 x = PReLU()(x)
-ip1 = Lambda(lambda x: K.l2_normalize(x), name='ip1')(x)
+ip1 = Lambda(lambda x: K.l2_normalize(x, axis=1), name='ip1')(x)
 ip2 = Dense(num_classes, use_bias=False, kernel_constraint=unit_norm())(ip1)
 
 
